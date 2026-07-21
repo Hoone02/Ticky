@@ -1,0 +1,607 @@
+<Window x:Class="TodoList.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Ticky"
+        Height="520"
+        Width="340"
+        MinHeight="320"
+        MinWidth="280"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        FontFamily="Hancom MalangMalang, Han Santteut Dotum, Noto Sans KR, Malgun Gothic, Segoe UI"
+        Closing="Window_Closing"
+        LocationChanged="Window_StateChanged"
+        SizeChanged="Window_StateChanged"
+        MouseEnter="Window_MouseEnter"
+        MouseLeave="Window_MouseLeave"
+        PreviewMouseMove="Window_PreviewMouseMove"
+        PreviewMouseLeftButtonUp="Window_PreviewMouseLeftButtonUp">
+    <Window.Resources>
+        <SolidColorBrush x:Key="Ink" Color="#2B2723" />
+        <SolidColorBrush x:Key="Muted" Color="#8B8175" />
+        <SolidColorBrush x:Key="Paper" Color="#FFF9EA" />
+        <SolidColorBrush x:Key="Line" Color="#EEE0BF" />
+        <SolidColorBrush x:Key="Accent" Color="#F08A5D" />
+
+        <Style x:Key="TopIconButton" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="1,0,0,0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#14F08A5D" />
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#28F08A5D" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TopToggleButton" TargetType="ToggleButton">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="1,0,0,0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#14F08A5D" />
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#22F08A5D" />
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AddButton" TargetType="Button">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="#FFF0D5" />
+            <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#FFE4BD" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#FFD39B" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="2,5" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="CaretBrush" Value="{StaticResource Accent}" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="Box"
+                                    Width="17"
+                                    Height="17"
+                                    Margin="0,2,9,0"
+                                    Background="#FFFFFB"
+                                    BorderBrush="#D9C7A6"
+                                    BorderThickness="1.4"
+                                    CornerRadius="5"
+                                    VerticalAlignment="Top">
+                                <Viewbox x:Name="CheckMark"
+                                         Width="11"
+                                         Height="9"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         Visibility="Collapsed">
+                                    <Path Data="M1,5 L4,8 L10,1"
+                                          Stroke="#FFFFFF"
+                                          StrokeThickness="2"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          StrokeLineJoin="Round" />
+                                </Viewbox>
+                            </Border>
+                            <ContentPresenter Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="Box" Property="Background" Value="#FFF3DF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{StaticResource Accent}" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Box" Property="Opacity" Value="0.78" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DeleteTodoButton" TargetType="Button">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="8,0,0,12" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#18F08A5D" />
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#30F08A5D" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#FFFFFB" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontFamily" Value="Hancom MalangMalang, Han Santteut Dotum, Noto Sans KR, Malgun Gothic, Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="Padding" Value="4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="9"
+                                Padding="{TemplateBinding Padding}">
+                            <ItemsPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="7"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#22F08A5D" />
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent" HorizontalAlignment="Right">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                  Opacity="0"
+                                                  IsHitTestVisible="False" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border x:Name="ThumbRoot"
+                                                        Width="6"
+                                                        Margin="2,0,0,0"
+                                                        Background="#CDBF9E"
+                                                        CornerRadius="3"
+                                                        Opacity="0.55" />
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ThumbRoot" Property="Background" Value="{StaticResource Accent}" />
+                                                        <Setter TargetName="ThumbRoot" Property="Opacity" Value="0.85" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter TargetName="ThumbRoot" Property="Background" Value="{StaticResource Accent}" />
+                                                        <Setter TargetName="ThumbRoot" Property="Opacity" Value="1" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                  Opacity="0"
+                                                  IsHitTestVisible="False" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ResizeThumb" TargetType="Thumb">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Border Background="{StaticResource Paper}"
+                BorderBrush="{StaticResource Line}"
+                BorderThickness="1"
+                CornerRadius="10">
+            <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="TitleBar"
+                  Grid.Row="0"
+                  Background="Transparent"
+                  MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <StackPanel x:Name="TopControls"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Margin="0,3,7,0"
+                            VerticalAlignment="Top"
+                            Opacity="0"
+                            IsHitTestVisible="False">
+                    <Grid>
+                        <Button x:Name="OpacityButton"
+                                Style="{StaticResource TopIconButton}"
+                                Content="◐"
+                                ToolTip="Opacity"
+                                MouseEnter="OpacityButton_MouseEnter"
+                                MouseLeave="OpacityButton_MouseLeave" />
+                        <Popup x:Name="OpacityPopup"
+                               PlacementTarget="{Binding ElementName=OpacityButton}"
+                               Placement="Bottom"
+                               AllowsTransparency="True"
+                               StaysOpen="True">
+                            <Border x:Name="OpacityHoverArea"
+                                    Background="#FFFFFB"
+                                    BorderBrush="{StaticResource Line}"
+                                    BorderThickness="1"
+                                    CornerRadius="9"
+                                    Padding="12,10"
+                                    Width="150"
+                                    MouseEnter="OpacityHoverArea_MouseEnter"
+                                    MouseLeave="OpacityHoverArea_MouseLeave">
+                                <StackPanel>
+                                    <TextBlock Text="Opacity"
+                                               Foreground="{StaticResource Muted}"
+                                               FontSize="11"
+                                               Margin="0,0,0,5" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="36" />
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="OpacitySlider"
+                                                Minimum="45"
+                                                Maximum="100"
+                                                TickFrequency="5"
+                                                IsSnapToTickEnabled="True"
+                                                ValueChanged="OpacitySlider_ValueChanged" />
+                                        <TextBlock x:Name="OpacityValue"
+                                                   Grid.Column="1"
+                                                   TextAlignment="Right"
+                                                   Foreground="{StaticResource Muted}"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ToggleButton x:Name="PinToggle"
+                                  Style="{StaticResource TopToggleButton}"
+                                  ToolTip="Always on top"
+                                  PreviewMouseLeftButtonDown="PinToggle_PreviewMouseLeftButtonDown"
+                                  Checked="PinToggle_Changed"
+                                  Unchecked="PinToggle_Changed">
+                        <Viewbox Width="13" Height="13">
+                            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                  Data="M12,2 L22,12 L19,15 L16,12 L11,17 L10,22 L8,24 L7,18 L2,13 L4,11 L9,12 L14,7 L11,4 Z" />
+                        </Viewbox>
+                    </ToggleButton>
+                    <Button Style="{StaticResource TopIconButton}"
+                            Content="_"
+                            ToolTip="Minimize"
+                            Click="MinimizeButton_Click" />
+                    <Button Style="{StaticResource TopIconButton}"
+                            Content="X"
+                            ToolTip="Close"
+                            Click="CloseButton_Click" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="18,8,18,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TodoInput"
+                         ToolTip="Todo text"
+                         KeyDown="TodoInput_KeyDown" />
+                <Button Grid.Column="1"
+                        Style="{StaticResource AddButton}"
+                        Margin="10,0,0,0"
+                        Content="+"
+                        ToolTip="Add todo"
+                        Click="AddButton_Click" />
+            </Grid>
+
+            <ScrollViewer Grid.Row="2"
+                          Margin="20,2,6,18"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="TodoItems">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid AllowDrop="True"
+                                  Cursor="SizeAll"
+                                  PreviewMouseLeftButtonDown="TodoItem_PreviewMouseLeftButtonDown"
+                                  PreviewMouseMove="TodoItem_MouseMove"
+                                  PreviewMouseRightButtonDown="TodoItem_PreviewMouseRightButtonDown">
+                                <Grid.ContextMenu>
+                                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <MenuItem Header="구분선 추가"
+                                                  Click="AddSeparatorMenuItem_Click" />
+                                        <MenuItem Header="구분선 제목 수정"
+                                                  Click="EditSeparatorMenuItem_Click">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSeparator}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
+                                <Grid x:Name="TodoRow">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{Binding IsDone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="TextDecorations" Value="{x:Null}" />
+                                                    <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDone}" Value="True">
+                                                            <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </CheckBox>
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource DeleteTodoButton}"
+                                            Tag="{Binding}"
+                                            Content="X"
+                                            ToolTip="Delete"
+                                            PreviewMouseLeftButtonDown="DeleteTodoButton_PreviewMouseLeftButtonDown"
+                                            Click="DeleteTodoButton_Click" />
+                                </Grid>
+
+                                <Grid x:Name="SeparatorRow"
+                                      Visibility="Collapsed"
+                                      MinHeight="32"
+                                      Background="Transparent"
+                                      Margin="0,3,0,11"
+                                      PreviewMouseRightButtonDown="SeparatorRow_PreviewMouseRightButtonDown">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Height="1"
+                                            Background="{StaticResource Line}"
+                                            VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SeparatorTitle}"
+                                               Foreground="{StaticResource Muted}"
+                                               FontSize="12"
+                                               Margin="10,0"
+                                               VerticalAlignment="Center" />
+                                    <Border Grid.Column="2"
+                                            Height="1"
+                                            Background="{StaticResource Line}"
+                                            VerticalAlignment="Center" />
+                                    <Button Grid.Column="3"
+                                            Style="{StaticResource DeleteTodoButton}"
+                                            Margin="8,0,0,0"
+                                            Tag="{Binding}"
+                                            Content="X"
+                                            ToolTip="Delete"
+                                            PreviewMouseLeftButtonDown="DeleteTodoButton_PreviewMouseLeftButtonDown"
+                                            Click="DeleteTodoButton_Click" />
+                                </Grid>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsSeparator}" Value="True">
+                                    <Setter TargetName="TodoRow" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="SeparatorRow" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <Canvas IsHitTestVisible="False">
+            <Border x:Name="DragGhost"
+                    Visibility="Collapsed"
+                    Background="#FFFFFB"
+                    BorderBrush="{StaticResource Line}"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="12,7"
+                    Opacity="0.92"
+                    Width="230">
+                <TextBlock x:Name="DragGhostText"
+                           Foreground="{StaticResource Ink}"
+                           FontSize="16"
+                           TextWrapping="Wrap" />
+            </Border>
+        </Canvas>
+
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Height="6"
+               VerticalAlignment="Top"
+               Cursor="SizeNS"
+               DragDelta="TopResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Height="6"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNS"
+               DragDelta="BottomResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Width="6"
+               HorizontalAlignment="Left"
+               Cursor="SizeWE"
+               DragDelta="LeftResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Width="6"
+               HorizontalAlignment="Right"
+               Cursor="SizeWE"
+               DragDelta="RightResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Cursor="SizeNWSE"
+               DragDelta="TopLeftResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Cursor="SizeNESW"
+               DragDelta="TopRightResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNESW"
+               DragDelta="BottomLeftResizeThumb_DragDelta" />
+        <Thumb Style="{StaticResource ResizeThumb}"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNWSE"
+               DragDelta="BottomRightResizeThumb_DragDelta" />
+    </Grid>
+</Window>
