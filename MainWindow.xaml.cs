@@ -499,6 +499,29 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var result = await UpdateService.CheckAndInstallLatestAsync();
+            MessageBox.Show(
+                this,
+                result.Message ?? "업데이트 확인이 끝났습니다.",
+                "Ticky Update",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                this,
+                $"업데이트 중 오류가 발생했습니다.\n{ex.Message}",
+                "Ticky Update",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
     private void OpacityButton_MouseEnter(object sender, MouseEventArgs e)
     {
         _opacityCloseTimer.Stop();

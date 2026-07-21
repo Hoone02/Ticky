@@ -344,6 +344,10 @@
                             VerticalAlignment="Top"
                             Opacity="0"
                             IsHitTestVisible="False">
+                    <Button Style="{StaticResource TopIconButton}"
+                            Content="↻"
+                            ToolTip="Update"
+                            Click="UpdateButton_Click" />
                     <Grid>
                         <Button x:Name="OpacityButton"
                                 Style="{StaticResource TopIconButton}"
