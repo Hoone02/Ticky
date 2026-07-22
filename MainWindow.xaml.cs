@@ -46,7 +46,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         TodoItems.ItemsSource = _items;
-        _opacityCloseTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(220) };
+        _opacityCloseTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
         _opacityCloseTimer.Tick += OpacityCloseTimer_Tick;
 
         LoadState();
@@ -244,6 +244,17 @@ public partial class MainWindow : Window
         UpdateTodoDrag(e);
     }
 
+    private void TodoCheckBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not TodoItem item)
+        {
+            return;
+        }
+
+        item.IsDone = !item.IsDone;
+        e.Handled = true;
+    }
+
     private void TodoItem_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not TodoItem item)
@@ -288,7 +299,14 @@ public partial class MainWindow : Window
     {
         TopControls.Opacity = 0;
         TopControls.IsHitTestVisible = false;
-        OpacityPopup.IsOpen = false;
+
+        if (OpacityPopup.IsOpen)
+        {
+            _opacityCloseTimer.Stop();
+            _opacityCloseTimer.Start();
+            return;
+        }
+
         _opacityCloseTimer.Stop();
     }
 
@@ -631,12 +649,19 @@ public partial class MainWindow : Window
     private void OpacityHoverArea_MouseLeave(object sender, MouseEventArgs e)
     {
         _opacityCloseTimer.Stop();
-        OpacityPopup.IsOpen = false;
+        _opacityCloseTimer.Start();
     }
 
     private void OpacityCloseTimer_Tick(object? sender, EventArgs e)
     {
         _opacityCloseTimer.Stop();
+
+        if (OpacityButton.IsMouseOver || OpacityHoverArea.IsMouseOver || OpacitySlider.IsMouseOver)
+        {
+            _opacityCloseTimer.Start();
+            return;
+        }
+
         OpacityPopup.IsOpen = false;
     }
 
