@@ -14,14 +14,43 @@ public sealed record UpdateCheckResult(
     string? Message,
     string? AssetUrl = null);
 
+public sealed record UpdateProgress(
+    string Status,
+    double? Percent = null);
+
 public static class UpdateService
 {
     private const string LatestReleaseUrl = "https://api.github.com/repos/Hoone02/Ticky/releases/latest";
     private const string AssetName = "Ticky-win-x64.zip";
+#if DEBUG
+    private const string TestZipEnvironmentVariable = "TICKY_UPDATE_TEST_ZIP";
+    private const string TestVersionEnvironmentVariable = "TICKY_UPDATE_TEST_VERSION";
+    private const string TestDelayEnvironmentVariable = "TICKY_UPDATE_TEST_DELAY_MS";
+#endif
 
     public static async Task<UpdateCheckResult> CheckLatestAsync()
     {
         var currentVersion = GetCurrentVersion();
+#if DEBUG
+        var testZipPath = Environment.GetEnvironmentVariable(TestZipEnvironmentVariable);
+        if (!string.IsNullOrWhiteSpace(testZipPath))
+        {
+            var fullTestZipPath = Path.GetFullPath(testZipPath);
+            if (!File.Exists(fullTestZipPath))
+            {
+                return new UpdateCheckResult(false, currentVersion, null, $"테스트 업데이트 파일이 없습니다: {fullTestZipPath}");
+            }
+
+            var testVersion = Environment.GetEnvironmentVariable(TestVersionEnvironmentVariable);
+            if (string.IsNullOrWhiteSpace(testVersion))
+            {
+                testVersion = "999.0.0";
+            }
+
+            return new UpdateCheckResult(true, currentVersion, NormalizeVersion(testVersion), "테스트 업데이트 확인됨", fullTestZipPath);
+        }
+#endif
+
         using var http = CreateHttpClient();
 
         using var response = await http.GetAsync(LatestReleaseUrl);
@@ -53,24 +82,32 @@ public static class UpdateService
         return new UpdateCheckResult(true, currentVersion, latestVersion, "업데이트 확인됨!", assetUrl);
     }
 
-    public static async Task<UpdateCheckResult> InstallAsync(UpdateCheckResult update)
+    public static async Task<UpdateCheckResult> InstallAsync(UpdateCheckResult update, IProgress<UpdateProgress>? progress = null)
     {
         if (!update.HasUpdate || string.IsNullOrWhiteSpace(update.AssetUrl) || string.IsNullOrWhiteSpace(update.LatestVersion))
         {
             return update with { Message = "설치할 업데이트가 없습니다." };
         }
 
-        using var http = CreateHttpClient();
         var updateDirectory = Path.Combine(Path.GetTempPath(), "TickyUpdate", update.LatestVersion);
         var zipPath = Path.Combine(updateDirectory, AssetName);
         var extractDirectory = Path.Combine(updateDirectory, "extract");
         Directory.CreateDirectory(updateDirectory);
+        progress?.Report(new UpdateProgress("업데이트 준비 중", 0));
 
-        using (var assetResponse = await http.GetAsync(update.AssetUrl))
+        var isLocalTestPackage = IsLocalPackage(update.AssetUrl);
+        if (isLocalTestPackage)
         {
+            await CopyFileWithProgressAsync(update.AssetUrl, zipPath, progress);
+        }
+        else
+        {
+            using var http = CreateHttpClient();
+            using var assetResponse = await http.GetAsync(update.AssetUrl, HttpCompletionOption.ResponseHeadersRead);
             assetResponse.EnsureSuccessStatusCode();
+            await using var assetStream = await assetResponse.Content.ReadAsStreamAsync();
             await using var file = File.Create(zipPath);
-            await assetResponse.Content.CopyToAsync(file);
+            await CopyStreamWithProgressAsync(assetStream, file, assetResponse.Content.Headers.ContentLength, progress, 0, 90);
         }
 
         if (Directory.Exists(extractDirectory))
@@ -78,7 +115,16 @@ public static class UpdateService
             Directory.Delete(extractDirectory, recursive: true);
         }
 
+        progress?.Report(new UpdateProgress("압축 해제 중", 95));
         ZipFile.ExtractToDirectory(zipPath, extractDirectory);
+
+        if (isLocalTestPackage)
+        {
+            progress?.Report(new UpdateProgress("업데이트 완료", 100));
+            return update with { Message = "업데이트가 완료되었습니다." };
+        }
+
+        progress?.Report(new UpdateProgress("업데이트 적용 중", 100));
         StartApplyScript(extractDirectory);
 
         return update with { Message = "업데이트를 설치합니다. 앱이 곧 다시 시작됩니다." };
@@ -88,6 +134,82 @@ public static class UpdateService
     {
         var update = await CheckLatestAsync();
         return update.HasUpdate ? await InstallAsync(update) : update;
+    }
+
+    private static bool IsLocalPackage(string assetUrl)
+    {
+#if DEBUG
+        if (Uri.TryCreate(assetUrl, UriKind.Absolute, out var uri))
+        {
+            return uri.IsFile;
+        }
+
+        return File.Exists(assetUrl);
+#else
+        return false;
+#endif
+    }
+
+    private static async Task CopyFileWithProgressAsync(
+        string sourcePath,
+        string destinationPath,
+        IProgress<UpdateProgress>? progress)
+    {
+        await using var source = File.OpenRead(sourcePath);
+        await using var destination = File.Create(destinationPath);
+        await CopyStreamWithProgressAsync(source, destination, source.Length, progress, 0, 90);
+    }
+
+    private static async Task CopyStreamWithProgressAsync(
+        Stream source,
+        Stream destination,
+        long? totalBytes,
+        IProgress<UpdateProgress>? progress,
+        double startPercent,
+        double endPercent)
+    {
+        var buffer = new byte[81920];
+        var totalRead = 0L;
+        var testDelay = GetTestDelay();
+
+        while (true)
+        {
+            var read = await source.ReadAsync(buffer);
+            if (read == 0)
+            {
+                break;
+            }
+
+            await destination.WriteAsync(buffer.AsMemory(0, read));
+            totalRead += read;
+
+            if (totalBytes is > 0)
+            {
+                var copyPercent = (double)totalRead / totalBytes.Value;
+                var percent = startPercent + ((endPercent - startPercent) * copyPercent);
+                progress?.Report(new UpdateProgress("다운로드 중", Math.Clamp(percent, startPercent, endPercent)));
+            }
+            else
+            {
+                progress?.Report(new UpdateProgress("다운로드 중"));
+            }
+
+            if (testDelay > 0)
+            {
+                await Task.Delay(testDelay);
+            }
+        }
+    }
+
+    private static int GetTestDelay()
+    {
+#if DEBUG
+        return int.TryParse(Environment.GetEnvironmentVariable(TestDelayEnvironmentVariable), out var delay)
+            ? Math.Clamp(delay, 0, 2000)
+            : 0;
+#else
+        return 0;
+#endif
     }
 
     private static HttpClient CreateHttpClient()

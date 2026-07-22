@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     private bool _didReorderTodo;
     private bool _isShowingCurrentVersion;
     private UpdateCheckResult? _pendingUpdate;
+    private bool _isInstallingUpdate;
     private AppState _state = new();
     private bool _isLoading = true;
 
@@ -573,8 +574,10 @@ public partial class MainWindow : Window
     {
         _isShowingCurrentVersion = true;
         _pendingUpdate = null;
+        _isInstallingUpdate = false;
         UpdateBannerDot.Fill = (Brush)FindResource("Line");
         UpdateBannerText.Text = $"v{version}";
+        UpdateProgressBar.Visibility = Visibility.Collapsed;
         UpdateBanner.Cursor = Cursors.Arrow;
         UpdateBanner.IsHitTestVisible = false;
         UpdateCurrentVersionBannerVisibility();
@@ -583,7 +586,9 @@ public partial class MainWindow : Window
     private void ShowUpdateAvailable()
     {
         _isShowingCurrentVersion = false;
+        _isInstallingUpdate = false;
         UpdateBannerDot.Fill = new SolidColorBrush(Color.FromRgb(49, 196, 141));
+        UpdateProgressBar.Visibility = Visibility.Collapsed;
         UpdateBanner.Cursor = Cursors.Hand;
         UpdateBanner.IsHitTestVisible = true;
         UpdateBanner.Visibility = Visibility.Visible;
@@ -601,21 +606,33 @@ public partial class MainWindow : Window
 
     private async void UpdateBanner_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (_pendingUpdate is null)
+        if (_pendingUpdate is null || _isInstallingUpdate)
         {
             return;
         }
 
-        UpdateBannerText.Text = "업데이트 설치 중...";
+        _isInstallingUpdate = true;
+        ShowUpdateProgress(new UpdateProgress("업데이트 설치 중", 0));
         UpdateBanner.IsHitTestVisible = false;
 
         try
         {
-            await UpdateService.InstallAsync(_pendingUpdate);
+            var progress = new Progress<UpdateProgress>(ShowUpdateProgress);
+            var result = await UpdateService.InstallAsync(_pendingUpdate, progress);
+#if DEBUG
+            if (Environment.GetEnvironmentVariable("TICKY_UPDATE_TEST_ZIP") is not null)
+            {
+                await Task.Delay(700);
+                ShowCurrentVersion(result.LatestVersion ?? result.CurrentVersion);
+                _isInstallingUpdate = false;
+            }
+#endif
         }
         catch (Exception ex)
         {
+            _isInstallingUpdate = false;
             UpdateBannerText.Text = "업데이트 실패";
+            UpdateProgressBar.Visibility = Visibility.Collapsed;
             UpdateBanner.IsHitTestVisible = true;
             MessageBox.Show(
                 this,
@@ -624,6 +641,23 @@ public partial class MainWindow : Window
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
+    }
+
+    private void ShowUpdateProgress(UpdateProgress progress)
+    {
+        UpdateBanner.Visibility = Visibility.Visible;
+        UpdateProgressBar.Visibility = Visibility.Visible;
+
+        if (progress.Percent is double percent)
+        {
+            UpdateProgressBar.IsIndeterminate = false;
+            UpdateProgressBar.Value = Math.Clamp(percent, 0, 100);
+            UpdateBannerText.Text = $"{progress.Status} {UpdateProgressBar.Value:0}%";
+            return;
+        }
+
+        UpdateProgressBar.IsIndeterminate = true;
+        UpdateBannerText.Text = progress.Status;
     }
 
     private void OpacityButton_MouseEnter(object sender, MouseEventArgs e)

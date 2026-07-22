@@ -572,21 +572,35 @@
 
         <StackPanel x:Name="UpdateBanner"
                     Visibility="Collapsed"
-                    Orientation="Horizontal"
+                    Width="136"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Margin="0,0,16,10"
                     Cursor="Hand"
                     MouseLeftButtonDown="UpdateBanner_MouseLeftButtonDown">
-            <Ellipse x:Name="UpdateBannerDot"
-                     Width="7"
-                     Height="7"
-                     Fill="#31C48D"
-                     Margin="0,0,6,0"
-                     VerticalAlignment="Center" />
-            <TextBlock x:Name="UpdateBannerText"
-                       Style="{StaticResource UpdateBannerText}"
-                       Text="업데이트 확인됨" />
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Ellipse x:Name="UpdateBannerDot"
+                         Width="7"
+                         Height="7"
+                         Fill="#31C48D"
+                         Margin="0,0,6,0"
+                         VerticalAlignment="Center" />
+                <TextBlock x:Name="UpdateBannerText"
+                           Style="{StaticResource UpdateBannerText}"
+                           Text="업데이트 확인됨"
+                           TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <ProgressBar x:Name="UpdateProgressBar"
+                         Visibility="Collapsed"
+                         Height="4"
+                         Margin="0,5,0,0"
+                         Minimum="0"
+                         Maximum="100"
+                         Value="0"
+                         Foreground="{StaticResource Accent}"
+                         Background="{StaticResource Line}"
+                         BorderThickness="0" />
         </StackPanel>
 
         <Thumb Style="{StaticResource ResizeThumb}"
