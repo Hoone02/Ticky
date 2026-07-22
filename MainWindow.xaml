@@ -343,24 +343,6 @@
                   Grid.Row="0"
                   Background="Transparent"
                   MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <StackPanel x:Name="UpdateBanner"
-                            Visibility="Collapsed"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Margin="14,0,0,0"
-                            Cursor="Hand"
-                            MouseLeftButtonDown="UpdateBanner_MouseLeftButtonDown">
-                    <Ellipse Width="7"
-                             Height="7"
-                             Fill="#31C48D"
-                             Margin="0,0,6,0"
-                             VerticalAlignment="Center" />
-                    <TextBlock x:Name="UpdateBannerText"
-                               Style="{StaticResource UpdateBannerText}"
-                               Text="업데이트 확인됨" />
-                </StackPanel>
-
                 <StackPanel x:Name="TopControls"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
@@ -368,11 +350,6 @@
                             VerticalAlignment="Top"
                             Opacity="0"
                             IsHitTestVisible="False">
-                    <Button Style="{StaticResource TopIconButton}"
-                            Content="↻"
-                            ToolTip="Update"
-                            PreviewMouseLeftButtonDown="UpdateButton_PreviewMouseLeftButtonDown"
-                            Click="UpdateButton_Click" />
                     <Grid>
                         <Button x:Name="OpacityButton"
                                 Style="{StaticResource TopIconButton}"
@@ -592,6 +569,25 @@
                            TextWrapping="Wrap" />
             </Border>
         </Canvas>
+
+        <StackPanel x:Name="UpdateBanner"
+                    Visibility="Collapsed"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,16,10"
+                    Cursor="Hand"
+                    MouseLeftButtonDown="UpdateBanner_MouseLeftButtonDown">
+            <Ellipse x:Name="UpdateBannerDot"
+                     Width="7"
+                     Height="7"
+                     Fill="#31C48D"
+                     Margin="0,0,6,0"
+                     VerticalAlignment="Center" />
+            <TextBlock x:Name="UpdateBannerText"
+                       Style="{StaticResource UpdateBannerText}"
+                       Text="업데이트 확인됨" />
+        </StackPanel>
 
         <Thumb Style="{StaticResource ResizeThumb}"
                Height="6"

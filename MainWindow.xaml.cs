@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private TodoItem? _draggedTodoItem;
     private bool _isReorderingTodo;
     private bool _didReorderTodo;
+    private bool _isShowingCurrentVersion;
     private UpdateCheckResult? _pendingUpdate;
     private AppState _state = new();
     private bool _isLoading = true;
@@ -284,6 +285,7 @@ public partial class MainWindow : Window
         {
             TopControls.Opacity = 1;
             TopControls.IsHitTestVisible = true;
+            UpdateCurrentVersionBannerVisibility();
         }
 
         UpdateTodoDrag(e);
@@ -293,12 +295,14 @@ public partial class MainWindow : Window
     {
         TopControls.Opacity = 1;
         TopControls.IsHitTestVisible = true;
+        UpdateCurrentVersionBannerVisibility();
     }
 
     private void Window_MouseLeave(object sender, MouseEventArgs e)
     {
         TopControls.Opacity = 0;
         TopControls.IsHitTestVisible = false;
+        UpdateCurrentVersionBannerVisibility();
 
         if (OpacityPopup.IsOpen)
         {
@@ -550,10 +554,12 @@ public partial class MainWindow : Window
             var result = await UpdateService.CheckLatestAsync();
             if (!result.HasUpdate)
             {
+                ShowCurrentVersion(result.CurrentVersion);
                 return;
             }
 
             _pendingUpdate = result;
+            ShowUpdateAvailable();
             UpdateBannerText.Text = "업데이트 확인됨";
             UpdateBanner.Visibility = Visibility.Visible;
         }
@@ -563,43 +569,34 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+    private void ShowCurrentVersion(string version)
     {
-        await CheckAndInstallUpdateFromUserActionAsync();
+        _isShowingCurrentVersion = true;
+        _pendingUpdate = null;
+        UpdateBannerDot.Fill = (Brush)FindResource("Line");
+        UpdateBannerText.Text = $"v{version}";
+        UpdateBanner.Cursor = Cursors.Arrow;
+        UpdateBanner.IsHitTestVisible = false;
+        UpdateCurrentVersionBannerVisibility();
     }
 
-    private async void UpdateButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void ShowUpdateAvailable()
     {
-        e.Handled = true;
-        await CheckAndInstallUpdateFromUserActionAsync();
+        _isShowingCurrentVersion = false;
+        UpdateBannerDot.Fill = new SolidColorBrush(Color.FromRgb(49, 196, 141));
+        UpdateBanner.Cursor = Cursors.Hand;
+        UpdateBanner.IsHitTestVisible = true;
+        UpdateBanner.Visibility = Visibility.Visible;
     }
 
-    private async Task CheckAndInstallUpdateFromUserActionAsync()
+    private void UpdateCurrentVersionBannerVisibility()
     {
-        try
+        if (!_isShowingCurrentVersion)
         {
-            var result = _pendingUpdate ?? await UpdateService.CheckLatestAsync();
-            if (result.HasUpdate)
-            {
-                result = await UpdateService.InstallAsync(result);
-            }
+            return;
+        }
 
-            MessageBox.Show(
-                this,
-                result.Message ?? "업데이트 확인이 끝났습니다.",
-                "Ticky Update",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                this,
-                $"업데이트 중 오류가 발생했습니다.\n{ex.Message}",
-                "Ticky Update",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-        }
+        UpdateBanner.Visibility = IsMouseOver ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void UpdateBanner_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
