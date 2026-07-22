@@ -137,6 +137,12 @@ public partial class MainWindow : Window
         AddTodo();
     }
 
+    private void AddButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        AddTodo();
+        e.Handled = true;
+    }
+
     private void AddSeparatorMenuItem_Click(object sender, RoutedEventArgs e)
     {
         var targetItem = (sender as FrameworkElement)?.DataContext as TodoItem;
@@ -263,6 +269,12 @@ public partial class MainWindow : Window
 
     private void Window_PreviewMouseMove(object sender, MouseEventArgs e)
     {
+        if (IsMouseOver)
+        {
+            TopControls.Opacity = 1;
+            TopControls.IsHitTestVisible = true;
+        }
+
         UpdateTodoDrag(e);
     }
 
@@ -496,9 +508,21 @@ public partial class MainWindow : Window
         WindowState = WindowState.Minimized;
     }
 
+    private void MinimizeButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+        e.Handled = true;
+    }
+
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void CloseButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        Close();
+        e.Handled = true;
     }
 
     private async Task CheckForUpdatesOnStartupAsync()
@@ -522,6 +546,17 @@ public partial class MainWindow : Window
     }
 
     private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        await CheckAndInstallUpdateFromUserActionAsync();
+    }
+
+    private async void UpdateButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        await CheckAndInstallUpdateFromUserActionAsync();
+    }
+
+    private async Task CheckAndInstallUpdateFromUserActionAsync()
     {
         try
         {

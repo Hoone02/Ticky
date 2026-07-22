@@ -353,6 +353,7 @@
                     <Button Style="{StaticResource TopIconButton}"
                             Content="↻"
                             ToolTip="Update"
+                            PreviewMouseLeftButtonDown="UpdateButton_PreviewMouseLeftButtonDown"
                             Click="UpdateButton_Click" />
                     <Grid>
                         <Button x:Name="OpacityButton"
@@ -416,10 +417,12 @@
                     <Button Style="{StaticResource TopIconButton}"
                             Content="_"
                             ToolTip="Minimize"
+                            PreviewMouseLeftButtonDown="MinimizeButton_PreviewMouseLeftButtonDown"
                             Click="MinimizeButton_Click" />
                     <Button Style="{StaticResource TopIconButton}"
                             Content="X"
                             ToolTip="Close"
+                            PreviewMouseLeftButtonDown="CloseButton_PreviewMouseLeftButtonDown"
                             Click="CloseButton_Click" />
                 </StackPanel>
             </Grid>
@@ -437,6 +440,7 @@
                         Margin="10,0,0,0"
                         Content="+"
                         ToolTip="Add todo"
+                        PreviewMouseLeftButtonDown="AddButton_PreviewMouseLeftButtonDown"
                         Click="AddButton_Click" />
             </Grid>
 
