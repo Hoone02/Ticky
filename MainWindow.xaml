@@ -321,8 +321,8 @@
         </Style>
 
         <Style x:Key="UpdateBannerText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource Accent}" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
     </Window.Resources>
@@ -569,22 +569,23 @@
             </Border>
         </Canvas>
 
-        <Border x:Name="UpdateBanner"
-                Visibility="Collapsed"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                Margin="0,38,0,0"
-                Background="#FFFFFB"
-                BorderBrush="{StaticResource Line}"
-                BorderThickness="1"
-                CornerRadius="10"
-                Padding="12,7"
-                Cursor="Hand"
-                MouseLeftButtonDown="UpdateBanner_MouseLeftButtonDown">
+        <StackPanel x:Name="UpdateBanner"
+                    Visibility="Collapsed"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,14,8"
+                    Cursor="Hand"
+                    MouseLeftButtonDown="UpdateBanner_MouseLeftButtonDown">
+            <Ellipse Width="7"
+                     Height="7"
+                     Fill="#31C48D"
+                     Margin="0,0,6,0"
+                     VerticalAlignment="Center" />
             <TextBlock x:Name="UpdateBannerText"
                        Style="{StaticResource UpdateBannerText}"
                        Text="업데이트 확인됨!" />
-        </Border>
+        </StackPanel>
 
         <Thumb Style="{StaticResource ResizeThumb}"
                Height="6"

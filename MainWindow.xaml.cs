@@ -536,7 +536,7 @@ public partial class MainWindow : Window
             }
 
             _pendingUpdate = result;
-            UpdateBannerText.Text = $"업데이트 확인됨! v{result.LatestVersion}";
+            UpdateBannerText.Text = "업데이트 확인됨";
             UpdateBanner.Visibility = Visibility.Visible;
         }
         catch
