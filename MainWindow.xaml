@@ -494,27 +494,31 @@
                                 </Grid.ContextMenu>
                                 <Grid x:Name="TodoRow">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <CheckBox IsChecked="{Binding IsDone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              PreviewMouseLeftButtonDown="TodoCheckBox_PreviewMouseLeftButtonDown">
-                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="TextDecorations" Value="{x:Null}" />
-                                                    <Setter Property="Foreground" Value="{StaticResource Ink}" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsDone}" Value="True">
-                                                            <Setter Property="TextDecorations" Value="Strikethrough" />
-                                                            <Setter Property="Foreground" Value="{StaticResource Muted}" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </CheckBox>
-                                    <Button Grid.Column="1"
+                                              PreviewMouseLeftButtonDown="TodoCheckBox_PreviewMouseLeftButtonDown" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Text}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,12"
+                                               VerticalAlignment="Top">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="TextDecorations" Value="{x:Null}" />
+                                                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDone}" Value="True">
+                                                        <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <Button Grid.Column="2"
                                             Style="{StaticResource DeleteTodoButton}"
                                             Tag="{Binding}"
                                             Content="X"
