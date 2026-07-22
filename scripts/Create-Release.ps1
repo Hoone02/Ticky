@@ -21,7 +21,7 @@ $installerDir = Join-Path $root "installer-dist"
 $installerPath = Join-Path $installerDir "TickySetup.exe"
 
 New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-dotnet publish $root -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -o $publishDir
+dotnet publish $root -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o $publishDir
 
 if (Test-Path $zipPath) {
     Remove-Item -LiteralPath $zipPath -Force
