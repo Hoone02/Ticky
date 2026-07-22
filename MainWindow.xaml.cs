@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private TodoItem? _draggedTodoItem;
     private bool _isReorderingTodo;
     private bool _didReorderTodo;
+    private UpdateCheckResult? _pendingUpdate;
     private AppState _state = new();
     private bool _isLoading = true;
 
@@ -53,6 +54,7 @@ public partial class MainWindow : Window
         EnsureStartupEnabled();
 
         _isLoading = false;
+        _ = CheckForUpdatesOnStartupAsync();
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -499,11 +501,36 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private async Task CheckForUpdatesOnStartupAsync()
+    {
+        try
+        {
+            var result = await UpdateService.CheckLatestAsync();
+            if (!result.HasUpdate)
+            {
+                return;
+            }
+
+            _pendingUpdate = result;
+            UpdateBannerText.Text = $"업데이트 확인됨! v{result.LatestVersion}";
+            UpdateBanner.Visibility = Visibility.Visible;
+        }
+        catch
+        {
+            // Startup update checks should never block the todo app.
+        }
+    }
+
     private async void UpdateButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            var result = await UpdateService.CheckAndInstallLatestAsync();
+            var result = _pendingUpdate ?? await UpdateService.CheckLatestAsync();
+            if (result.HasUpdate)
+            {
+                result = await UpdateService.InstallAsync(result);
+            }
+
             MessageBox.Show(
                 this,
                 result.Message ?? "업데이트 확인이 끝났습니다.",
@@ -513,6 +540,33 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            MessageBox.Show(
+                this,
+                $"업데이트 중 오류가 발생했습니다.\n{ex.Message}",
+                "Ticky Update",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+    private async void UpdateBanner_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_pendingUpdate is null)
+        {
+            return;
+        }
+
+        UpdateBannerText.Text = "업데이트 설치 중...";
+        UpdateBanner.IsHitTestVisible = false;
+
+        try
+        {
+            await UpdateService.InstallAsync(_pendingUpdate);
+        }
+        catch (Exception ex)
+        {
+            UpdateBannerText.Text = "업데이트 실패";
+            UpdateBanner.IsHitTestVisible = true;
             MessageBox.Show(
                 this,
                 $"업데이트 중 오류가 발생했습니다.\n{ex.Message}",

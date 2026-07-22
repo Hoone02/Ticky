@@ -319,6 +319,12 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Opacity" Value="0" />
         </Style>
+
+        <Style x:Key="UpdateBannerText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -558,6 +564,23 @@
                            TextWrapping="Wrap" />
             </Border>
         </Canvas>
+
+        <Border x:Name="UpdateBanner"
+                Visibility="Collapsed"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,38,0,0"
+                Background="#FFFFFB"
+                BorderBrush="{StaticResource Line}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="12,7"
+                Cursor="Hand"
+                MouseLeftButtonDown="UpdateBanner_MouseLeftButtonDown">
+            <TextBlock x:Name="UpdateBannerText"
+                       Style="{StaticResource UpdateBannerText}"
+                       Text="업데이트 확인됨!" />
+        </Border>
 
         <Thumb Style="{StaticResource ResizeThumb}"
                Height="6"

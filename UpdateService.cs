@@ -7,14 +7,19 @@ using System.Text.Json;
 
 namespace TodoList;
 
-public sealed record UpdateCheckResult(bool HasUpdate, string CurrentVersion, string? LatestVersion, string? Message);
+public sealed record UpdateCheckResult(
+    bool HasUpdate,
+    string CurrentVersion,
+    string? LatestVersion,
+    string? Message,
+    string? AssetUrl = null);
 
 public static class UpdateService
 {
     private const string LatestReleaseUrl = "https://api.github.com/repos/Hoone02/Ticky/releases/latest";
     private const string AssetName = "Ticky-win-x64.zip";
 
-    public static async Task<UpdateCheckResult> CheckAndInstallLatestAsync()
+    public static async Task<UpdateCheckResult> CheckLatestAsync()
     {
         var currentVersion = GetCurrentVersion();
         using var http = CreateHttpClient();
@@ -26,7 +31,7 @@ public static class UpdateService
                 false,
                 currentVersion,
                 null,
-                "업데이트를 확인할 수 없습니다. GitHub 저장소가 private이면 public으로 바꾸거나 TICKY_GITHUB_TOKEN 환경 변수가 필요합니다.");
+                "업데이트를 확인할 수 없습니다. 저장소가 private이면 TICKY_GITHUB_TOKEN 환경 변수가 필요합니다.");
         }
 
         await using var releaseStream = await response.Content.ReadAsStreamAsync();
@@ -45,12 +50,23 @@ public static class UpdateService
             return new UpdateCheckResult(false, currentVersion, latestVersion, $"릴리스에 {AssetName} 파일이 없습니다.");
         }
 
-        var updateDirectory = Path.Combine(Path.GetTempPath(), "TickyUpdate", latestVersion);
+        return new UpdateCheckResult(true, currentVersion, latestVersion, "업데이트 확인됨!", assetUrl);
+    }
+
+    public static async Task<UpdateCheckResult> InstallAsync(UpdateCheckResult update)
+    {
+        if (!update.HasUpdate || string.IsNullOrWhiteSpace(update.AssetUrl) || string.IsNullOrWhiteSpace(update.LatestVersion))
+        {
+            return update with { Message = "설치할 업데이트가 없습니다." };
+        }
+
+        using var http = CreateHttpClient();
+        var updateDirectory = Path.Combine(Path.GetTempPath(), "TickyUpdate", update.LatestVersion);
         var zipPath = Path.Combine(updateDirectory, AssetName);
         var extractDirectory = Path.Combine(updateDirectory, "extract");
         Directory.CreateDirectory(updateDirectory);
 
-        using (var assetResponse = await http.GetAsync(assetUrl))
+        using (var assetResponse = await http.GetAsync(update.AssetUrl))
         {
             assetResponse.EnsureSuccessStatusCode();
             await using var file = File.Create(zipPath);
@@ -65,7 +81,13 @@ public static class UpdateService
         ZipFile.ExtractToDirectory(zipPath, extractDirectory);
         StartApplyScript(extractDirectory);
 
-        return new UpdateCheckResult(true, currentVersion, latestVersion, "업데이트를 설치합니다. 앱이 곧 다시 시작됩니다.");
+        return update with { Message = "업데이트를 설치합니다. 앱이 곧 다시 시작됩니다." };
+    }
+
+    public static async Task<UpdateCheckResult> CheckAndInstallLatestAsync()
+    {
+        var update = await CheckLatestAsync();
+        return update.HasUpdate ? await InstallAsync(update) : update;
     }
 
     private static HttpClient CreateHttpClient()
