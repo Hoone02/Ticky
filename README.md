@@ -22,7 +22,11 @@ The published app is created under `publish/Ticky.exe`.
 
 ## Installer
 
-Create a GitHub release first, then install from PowerShell:
+Download `TickySetup.exe` from GitHub Releases and run it.
+
+The setup executable installs Ticky to `%LOCALAPPDATA%\Ticky`, creates a Start Menu shortcut, registers startup, and launches the app.
+
+PowerShell script installation is also available:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File installer/Install-Ticky.ps1

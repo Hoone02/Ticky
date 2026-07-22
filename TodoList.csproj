@@ -17,6 +17,9 @@
 
   <ItemGroup>
     <Resource Include="Assets\TodoList.ico" />
+    <Compile Remove="setup\**\*.cs" />
+    <None Remove="setup\**\*" />
+    <EmbeddedResource Remove="setup\**\*" />
   </ItemGroup>
 
 </Project>
